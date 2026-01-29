@@ -18,7 +18,7 @@
 
 
 
-#define PLUGIN_VERSION 		"2.10"
+#define PLUGIN_VERSION 		"2.11"
 
 /*======================================================================================
 	Plugin Info:
@@ -31,6 +31,12 @@
 
 ========================================================================================
 	Change Log:
+
+2.11 (29-Jan-2026)
+	- Plugin now hides the players weapon and items attachments while crawling.
+	- Fixed precache crashes from the last update.
+	- Fixed the "Nick" model showing through.
+	- Thanks to "stkdng" and "Marttt" for reporting.
 
 2.10 (25-Jan-2026)
 	- Changes to fix Survivor workshop models misaligning with the crawling animation. Thanks to "JustMe" for fixing.
@@ -388,6 +394,8 @@ public void OnClientPutInServer(int client)
 // ====================================================================================================
 public void OnMapStart()
 {
+	PrecacheModel(MODEL_NICK);
+
 	g_bMapStarted = true;
 }
 
@@ -799,6 +807,8 @@ Action PlayAnim(int client)
 		TeleportEntity(cloneVisible, view_as<float>({0.0, 0.0, 0.0}), view_as<float>({0.0, 0.0, 0.0}), NULL_VECTOR);
 
 		g_iCloneVisible[client] = EntIndexToEntRef(cloneVisible);
+
+		SetEntityRenderMode(clone, RENDER_NONE);
 	}
 
 	// Make Survivor Invisible
@@ -841,7 +851,14 @@ Action PlayAnim(int client)
 			SDKHook(clone, SDKHook_SetTransmit, OnTransmit);
 	}
 
+	SDKHook(client, SDKHook_PostThinkPost, OnPostThink);
+
 	return Plugin_Continue;
+}
+
+void OnPostThink(int client)
+{
+	SetEntProp(client, Prop_Send, "m_iAddonBits", 0);
 }
 
 Action OnTransmit(int entity, int client)
@@ -983,6 +1000,8 @@ void RemoveClone(int client)
 			SetEntProp(client, Prop_Send, "m_bSurvivorGlowEnabled", 1);
 		}
 	}
+
+	SDKUnhook(client, SDKHook_PostThinkPost, OnPostThink);
 }
 
 // LMC
