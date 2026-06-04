@@ -18,7 +18,7 @@
 
 
 
-#define PLUGIN_VERSION 		"2.11"
+#define PLUGIN_VERSION 		"2.12"
 
 /*======================================================================================
 	Plugin Info:
@@ -31,6 +31,9 @@
 
 ========================================================================================
 	Change Log:
+
+2.12 (04-Jun-2026)
+	- Fixed the Glow not working when "NEW_MODEL_FIX" was set to false. Thanks to "Jedrickx" for reporting.
 
 2.11 (29-Jan-2026)
 	- Plugin now hides the players weapon and items attachments while crawling.
@@ -829,11 +832,17 @@ Action PlayAnim(int client)
 	if( g_bGlow )
 	{
 		int visibleEnt = EntRefToEntIndex(g_iCloneVisible[client]);
-		if( visibleEnt != INVALID_ENT_REFERENCE )
+		if( visibleEnt > 0 )
 		{
 			SetEntProp(visibleEnt, Prop_Send, "m_iGlowType", 3);
 			SetEntProp(visibleEnt, Prop_Send, "m_glowColorOverride", 180 | (225 << 8) | (0 << 16));
 			SetEntProp(visibleEnt, Prop_Send, "m_nGlowRange", 0);
+		}
+		else
+		{
+			SetEntProp(clone, Prop_Send, "m_iGlowType", 3);
+			SetEntProp(clone, Prop_Send, "m_glowColorOverride", 180 | (225 << 8) | (0 << 16));
+			SetEntProp(clone, Prop_Send, "m_nGlowRange", 0);
 		}
 	}
 
